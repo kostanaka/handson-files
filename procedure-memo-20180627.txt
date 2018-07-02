@@ -84,3 +84,8 @@ minishift start [--http-proxy=http://...:8080 --https-proxy=https://...:8080]
 
 終了時には
 minishift stop
+
+ocコマンドのセットアップ
+eval $(minishift oc-env)
+.bashrcの設定
+minishift oc-env >> ~/.bashrc
