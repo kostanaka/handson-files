@@ -90,6 +90,6 @@ eval $(minishift oc-env)
 .bashrcの設定
 minishift oc-env >> ~/.bashrc
 
-minishift lp
+minishift ip
 →　minishiftのIPアドレス
 export no_proxy=(minishiftのIPアドレス)
