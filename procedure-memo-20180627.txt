@@ -89,3 +89,7 @@ ocコマンドのセットアップ
 eval $(minishift oc-env)
 .bashrcの設定
 minishift oc-env >> ~/.bashrc
+
+minishift lp
+→　minishiftのIPアドレス
+export no_proxy=(minishiftのIPアドレス)
