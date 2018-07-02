@@ -1,0 +1,84 @@
+[事前準備、確認作業]
+- VMwareにて、Nested Virtualizationを有効にする
+  参考リンクなど) http://zokibayashi.hatenablog.com/entry/2015/04/17/005106
+  (確認) egrep '(vmx|svm)' /proc/cpuinfo
+- ローカルのリポジトリを無効にする
+  /etc/yum.repos.d/*.repo を見て、全て enabled=0 にしておく
+- proxy設定を、rootおよびハンズオン用の一般ユーザの.bashrc に入れておく
+  export https_proxy=https://...:8080
+  export http_proxy=http://...:8080
+- インターネット上のホスト名の名前解決が可能なDNSを用意して、/etc/resolv.conf に設定しておく
+  (確認) nslookup hoge.192.168.1.1.xip.io
+   → 192.168.1.1 が返ること
+
+(CDKセットアップ手順)
+https://developers.redhat.com/products/cdk/hello-world/#fndtn-rhel
+=====================================================================
+以下はrootユーザで実行：
+
+subscription-manager unregiser
+subscription-manager register
+-> username /password (Red Hat developer登録したやつ)
+
+subscription-manager list --available
+-> 仮想タイプのpool-idをコピー -y
+
+subscription-manager attach --pool=ペースト
+
+subscription-manager repos --disable='*'
+subscription-manager repos --enable rhel-7-server-rpms
+subscription-manager repos --enable rhel-7-server-devtools-rpms
+subscription-manager repos --enable rhel-server-rhscl-7-rpms
+subscription-manager repos --enabel rhel-7-server-extras-rpms <<=== 追加 for docker
+
+(確認)
+yum repolist
+→ 上記4つのリポジトリが有効になっていること
+
+証明書のインストール
+
+cd /etc/pki/rpm-gpg
+wget -O RPM-GPG-KEY-redhat-devel https://www.redhat.com/security/data/a5787476.txt
+rpm --import RPM-GPG-KEY-redhat-devel
+
+[update RHEL全体]
+
+yum update -y; reboot
+
+[install docker / CDK / minishift]
+
+yum install docker -y
+yum install cdk-minishift docker-machine-kvm -y
+
+(既にGUI環境あれば不要)yum group install 'Server with GUI
+
+[KVMドライバの導入]
+(参考リンク) https://access.redhat.com/documentation/en-us/red_hat_container_development_kit/3.4/html-single/getting_started_guide/index#setting-up-kvm-driver
+curl -L https://github.com/dhiltgen/docker-machine-kvm/releases/download/v0.7.0/docker-machine-driver-kvm -o /usr/local/bin/docker-machine-driver-kvm
+chmod +x /usr/local/bin/docker-machine-driver-kvm
+
+yum install libvirt qemu-kvm -y
+systemctl start libvirtd; systemctl enable libvirtd
+usermod -a -G libvirt (ハンズオン用の一般ユーザ名)
+
+[setup CDK]
+
+(以降は 一般ユーザで実行)
+newgrp libvirt
+minishift setup-cdk
+
+export MINISHIFT_USERNAME='<RED_HAT_USERNAME>'
+export MINISHIFT_PASSWORD='<RED_HAT_PASSWORD>'
+echo export MINISHIFT_USERNAME=$MINISHIFT_USERNAME >> ~/.bashrc
+echo export MINISHIFT_PASSWORD=$MINISHIFT_PASSWORD >> ~/.bashrc
+minishift config set http-proxy http://...:8080
+minishift config set https-proxy https://...:8080
+
+minishift start [--http-proxy=http://...:8080 --https-proxy=https://...:8080]
+
+メッセージの最後あたりに URL が表示されるので、そこを Firefox でアクセス
+(GUIが一般ユーザでloginしている状態であれば) minishift console
+  -> Firefox でopenshift login画面が出る
+
+終了時には
+minishift stop
