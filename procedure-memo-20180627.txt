@@ -82,9 +82,10 @@ minishift start [--http-proxy=http://...:8080 --https-proxy=https://...:8080]
 (GUIが一般ユーザでloginしている状態であれば) minishift console
   -> Firefox でopenshift login画面が出る
 
-minshift ip
+minishift ip
 →　minishiftのIPアドレス
-export no_proxy=(minishiftのIPアドレス)
+export no_proxy=minishiftのIPアドレス
+(.bashrcに設定しても良いが、IPアドレスは変わるかもしれないので注意)
 
 終了時には
 minishift stop
